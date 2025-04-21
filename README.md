@@ -7,7 +7,11 @@ Your own stupid simple personal RSS feed aggregator.
 
 ## Run
 
-Create a file called feeds.txt in the root of the project and add URLs of the RSS/Atom feeds, one-per-line.
+Create a file called `feeds.txt` in the root of the project and add URLs of the RSS/Atom feeds, one-per-line.
+
+```txt
+https://example.org/feed.rss
+```
 
 The easiest way to get started is to run PHPs built-in webserver.
 
