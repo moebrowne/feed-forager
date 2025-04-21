@@ -31,3 +31,12 @@ docker run \
     -v $PWD/feeds.txt:/var/www/html/feeds.txt \
     feed-forager
 ```
+
+## Featured Feeds
+
+If you want to highlight posts from your favourite feeds simply add a `*` to the start of the feed URL in `feeds.txt`
+
+```txt
+https://example.org/feed.rss
+*https://example.org/roadrunner.rss
+```

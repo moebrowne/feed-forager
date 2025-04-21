@@ -29,4 +29,8 @@ final class Post
             return mb_strimwidth(trim($text), 0, 255, '…');
         }
     }
+
+    public string $domain {
+        get => parse_url($this->link, PHP_URL_HOST);
+    }
 }

@@ -6,25 +6,32 @@ foreach (glob(__DIR__ . '/../src/*.php') as $path) {
     require $path;
 }
 
-$feedUrls = array_filter(
-    file(__DIR__ . '/../feeds.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES),
-    fn (string $line): bool => str_starts_with($line, '#') === false
+$feedUrls = file(__DIR__ . '/../feeds.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+$feedUrlsToFetch = pipe(
+    $feedUrls,
+    filterOutComments: fn (string $feedUrl): bool => str_starts_with($feedUrl, '#') === false,
+    mapToRemoveLeadingStar: fn (string $feedUrl): string => ltrim($feedUrl, '*'),
+    filterByDomain: function (string $feedUrl): bool {
+        if (array_key_exists('domain', $_GET) === false) {
+            return true;
+        }
+
+        return parse_url($feedUrl, PHP_URL_HOST) === $_GET['domain'];
+    }
 );
 
-$posts = FeedParser::run($feedUrls);
+$featuredFeedDomains = pipe(
+    $feedUrls,
+    filterOutNonFeaturedUrls: fn (string $feedUrl): bool => str_starts_with($feedUrl, '*'),
+    mapToRemoveLeadingStar: fn (string $feedUrl): string => ltrim($feedUrl, '*'),
+    mapToDomainName: fn (string $feedUrl): string => parse_url($feedUrl, PHP_URL_HOST),
+);
 
-uasort($posts, static fn(Post $a, Post $b): int => $b->publishedAt <=> $a->publishedAt);
-
-if (array_key_exists('domain', $_GET)) {
-    $posts = array_filter(
-        $posts,
-        fn (Post $post): bool => parse_url($post->link, PHP_URL_HOST) === $_GET['domain']
-    );
-}
-
-function e(?string $value): string {
-    return htmlentities($value ?? '', double_encode: false);
-}
+$posts = pipe(
+    FeedParser::run($feedUrlsToFetch),
+    sortByPublishDate: fn(Post $a, Post $b): int => $b->publishedAt <=> $a->publishedAt,
+);
 
 ?>
 <!doctype html>
@@ -70,6 +77,7 @@ function e(?string $value): string {
         }
 
         feed-item {
+            position: relative;
             display: block;
             padding: 4px;
             text-wrap: nowrap;
@@ -78,13 +86,22 @@ function e(?string $value): string {
             line-height: 150%;
         }
 
+        feed-item[featured]::before {
+            position: absolute;
+            content: "✦";
+            display: inline-block;
+            left: 62px;
+            top: 5px;
+            color: darkgoldenrod;
+            font-size: 0.8rem;
+        }
+
         time {
             display: inline-block;
             width: 70px;
             color: slategray;
             font-size: 0.8rem;
         }
-
 
         feed-domain {
             color: slategray;
@@ -101,6 +118,7 @@ function e(?string $value): string {
 <feed-items>
     <?php $year = null; ?>
     <?php foreach ($posts as $post) : ?>
+        <?php $isFeatured = in_array($post->domain, $featuredFeedDomains, true); ?>
         <?php if ($year === null || $year !== $post->publishedAt->format('Y')) : ?>
             <?php if ($year !== null) : ?><hr><?php endif; ?>
 
@@ -109,7 +127,7 @@ function e(?string $value): string {
             <h1><?= $year; ?></h1>
         <?php endif ?>
 
-        <feed-item>
+        <feed-item <?= $isFeatured ? 'featured' : ''; ?>>
             <time datetime="<?= $post->publishedAt->format('c'); ?>">
                 <?= $post->publishedAt->format('j'); ?><span style="font-size: 0.7rem;"><?= $post->publishedAt->format('S'); ?></span> <?= $post->publishedAt->format('M'); ?>
             </time>
@@ -119,8 +137,8 @@ function e(?string $value): string {
             </a>
 
             <feed-domain>
-                <a href="?domain=<?= e(parse_url($post->link, PHP_URL_HOST)); ?>">
-                    (<?= e(parse_url($post->link, PHP_URL_HOST)) ?>)
+                <a href="?domain=<?= e($post->domain); ?>">
+                    (<?= e($post->domain) ?>)
                 </a>
             </feed-domain>
         </feed-item>
