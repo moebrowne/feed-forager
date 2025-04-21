@@ -111,7 +111,7 @@ function e(?string $value): string {
 
         <feed-item>
             <time datetime="<?= $post->publishedAt->format('c'); ?>">
-                <?= $post->publishedAt->format('jS M'); ?>
+                <?= $post->publishedAt->format('j'); ?><span style="font-size: 0.7rem;"><?= $post->publishedAt->format('S'); ?></span> <?= $post->publishedAt->format('M'); ?>
             </time>
 
             <a href="<?= e($post->link); ?>" title="<?= e($post->shortDescription); ?>">
