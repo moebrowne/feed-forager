@@ -53,11 +53,11 @@ function e(?string $value): string {
         }
 
         feed-items {
-             display: block;
-             max-width: 900px;
-             margin: 0 auto;
-             padding: 25px 10px;
-         }
+            display: block;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 25px 10px;
+        }
 
         hr {
             color: lightsteelblue;
