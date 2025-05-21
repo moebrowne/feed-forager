@@ -108,7 +108,6 @@ header('Referrer-Policy: no-referrer');
 <feed-items>
     <?php $year = null; ?>
     <?php foreach ($posts as $post) : ?>
-        <?php $isFeatured = in_array($post->domain, $featuredFeedDomains, true); ?>
         <?php if ($year === null || $year !== $post->publishedAt->format('Y')) : ?>
             <?php if ($year !== null) : ?><hr><?php endif; ?>
 
@@ -117,7 +116,7 @@ header('Referrer-Policy: no-referrer');
             <h1><?= $year; ?></h1>
         <?php endif ?>
 
-        <feed-item <?= $isFeatured ? 'featured' : ''; ?>>
+        <feed-item>
             <time datetime="<?= $post->publishedAt->format('c'); ?>">
                 <?= $post->publishedAt->format('j'); ?><span style="font-size: 0.7rem;"><?= $post->publishedAt->format('S'); ?></span> <?= $post->publishedAt->format('M'); ?>
             </time>
