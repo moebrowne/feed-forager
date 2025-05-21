@@ -33,6 +33,8 @@ $posts = pipe(
     sortByPublishDate: fn(Post $a, Post $b): int => $b->publishedAt <=> $a->publishedAt,
 );
 
+header('Referrer-Policy: no-referrer');
+
 ?>
 <!doctype html>
 <html lang="en">
