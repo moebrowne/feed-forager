@@ -30,7 +30,13 @@ final class Post
         }
     }
 
-    public string $domain {
-        get => parse_url($this->link, PHP_URL_HOST);
+    public string $author {
+        get {
+            if (preg_match('#nitter.poast.org/([^/]+)/#', $this->link, $matches) === 1) {
+                return '@' . $matches[1];
+            }
+
+            return parse_url($this->link, PHP_URL_HOST);
+        }
     }
 }

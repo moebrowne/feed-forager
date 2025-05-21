@@ -12,13 +12,6 @@ $feedUrlsToFetch = pipe(
     $feedUrls,
     filterOutComments: fn (string $feedUrl): bool => str_starts_with($feedUrl, '#') === false,
     mapToRemoveLeadingStar: fn (string $feedUrl): string => ltrim($feedUrl, '*'),
-    filterByDomain: function (string $feedUrl): bool {
-        if (array_key_exists('domain', $_GET) === false) {
-            return true;
-        }
-
-        return parse_url($feedUrl, PHP_URL_HOST) === $_GET['domain'];
-    }
 );
 
 $featuredFeedDomains = pipe(
@@ -105,14 +98,9 @@ header('Referrer-Policy: no-referrer');
             font-size: 0.8rem;
         }
 
-        feed-domain {
+        feed-author {
             color: slategray;
             font-size: 0.8rem;
-        }
-
-        feed-domain a {
-            color: inherit;
-            text-decoration: none;
         }
     </style>
 </head>
@@ -138,11 +126,9 @@ header('Referrer-Policy: no-referrer');
                 <?= e(mb_strimwidth($post->title, 0, 70, '…')) ?>
             </a>
 
-            <feed-domain>
-                <a href="?domain=<?= e($post->domain); ?>">
-                    (<?= e($post->domain) ?>)
-                </a>
-            </feed-domain>
+            <feed-author>
+                <?= e($post->author) ?>
+            </feed-author>
         </feed-item>
     <?php endforeach; ?>
 </feed-items>
