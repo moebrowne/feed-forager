@@ -8,19 +8,28 @@ foreach (glob(__DIR__ . '/../src/*.php') as $path) {
 
 $feedUrls = file(__DIR__ . '/../feeds.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
+/** @var string[] $feedUrlsToFetch */
 $feedUrlsToFetch = pipe(
     $feedUrls,
     filterOutComments: fn (string $feedUrl): bool => str_starts_with($feedUrl, '#') === false,
     mapToRemoveLeadingStar: fn (string $feedUrl): string => ltrim($feedUrl, '*'),
 );
 
-$featuredFeedDomains = pipe(
+/** @var string[] $featuredAuthors */
+$featuredAuthors = pipe(
     $feedUrls,
     filterOutNonFeaturedUrls: fn (string $feedUrl): bool => str_starts_with($feedUrl, '*'),
     mapToRemoveLeadingStar: fn (string $feedUrl): string => ltrim($feedUrl, '*'),
-    mapToDomainName: fn (string $feedUrl): string => parse_url($feedUrl, PHP_URL_HOST),
+    mapToAuthorName: function (string $feedUrl): string {
+        if (preg_match('#nitter.poast.org/([^/]+)/#', $feedUrl, $matches) === 1) {
+            return '@' . $matches[1];
+        }
+
+        return parse_url($feedUrl, PHP_URL_HOST);
+    },
 );
 
+/** @var Post[] $posts */
 $posts = pipe(
     FeedParser::run($feedUrlsToFetch),
     sortByPublishDate: fn(Post $a, Post $b): int => $b->publishedAt <=> $a->publishedAt,
@@ -116,7 +125,7 @@ header('Referrer-Policy: no-referrer');
             <h1><?= $year; ?></h1>
         <?php endif ?>
 
-        <feed-item>
+        <feed-item <?= in_array($post->author, $featuredAuthors, true) ? 'featured' : ''; ?>>
             <time datetime="<?= $post->publishedAt->format('c'); ?>">
                 <?= $post->publishedAt->format('j'); ?><span style="font-size: 0.7rem;"><?= $post->publishedAt->format('S'); ?></span> <?= $post->publishedAt->format('M'); ?>
             </time>
