@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 final class FeedParser
 {
+    private static string $nitterAuthToken;
+
     /** @return Post[] */
     public static function run(array $feedUrls): array
     {
@@ -68,6 +70,10 @@ final class FeedParser
 
     private static function getNitterAuthToken(): string
     {
+        if (isset(self::$nitterAuthToken)) {
+            return self::$nitterAuthToken;
+        }
+
         $curlHandle = curl_init();
 
         curl_setopt_array($curlHandle, [
@@ -86,7 +92,7 @@ final class FeedParser
             throw new Exception('Unable to find Nitter challenge');
         }
 
-        return self::solveNitterChallenge($matches[0]);
+        return self::$nitterAuthToken = self::solveNitterChallenge($matches[0]);
     }
     
     private static function solveNitterChallenge(string $challenge): string
