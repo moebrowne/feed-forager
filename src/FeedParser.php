@@ -49,7 +49,13 @@ final class FeedParser
             $content = curl_multi_getcontent($handle);
 
             if ($httpCode === 200) {
-                $posts = [...$posts, ...self::getFeed($url, $content)->posts];
+                try {
+                    $feed = self::getFeed($url, $content);
+
+                    $posts = [...$posts, ...$feed->posts];
+                } catch (Exception $e) {
+                    user_error($e->getMessage());
+                }
             }
 
             curl_multi_remove_handle($multiHandle, $handle);
